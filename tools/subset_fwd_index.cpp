@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     auto shard_files_option =
         app.add_option("-s,--shard-files", shard_files, "List of files with shard titles");
     /* random_option->excludes(shard_files_option); */
-    shard_files_option->excludes(random_option);
+    /* shard_files_option->excludes(random_option); */
     CLI11_PARSE(app, argc, argv);
 
     spdlog::set_level(app.log_level());
