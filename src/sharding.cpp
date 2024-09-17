@@ -78,8 +78,9 @@ auto mapping_from_files(std::istream* full_titles, gsl::span<std::istream*> shar
         if (auto pos = map.find(title); pos != map.end()) {
             result.push_back(pos->second);
         } else {
-            spdlog::warn("No shard assignment for document {}; will be assigned to shard 0", title);
-            result.push_back(Shard_Id(0));
+            // subset collection
+            //spdlog::warn("No shard assignment for document {}; will be assigned to shard 0", title);
+            //result.push_back(Shard_Id(0));
         }
     });
     return result;

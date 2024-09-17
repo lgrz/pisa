@@ -38,17 +38,30 @@ int main(int argc, char** argv) {
     app.add_option("-i,--input", input_basename, "Forward index filename")->required();
     app.add_option("-o,--output", output_basename, "Basename of partitioned shards")->required();
     app.add_option("-j,--threads", threads, "Thread count");
-    auto random_option = app.add_option("-r,--random-shards", shard_count, "Number of random shards");
+    /* auto random_option = app.add_option("-r,--random-shards", shard_count, "Number of random shards"); */
     auto shard_files_option =
         app.add_option("-s,--shard-files", shard_files, "List of files with shard titles");
-    random_option->excludes(shard_files_option);
+    /* random_option->excludes(shard_files_option); */
     shard_files_option->excludes(random_option);
     CLI11_PARSE(app, argc, argv);
 
     spdlog::set_level(app.log_level());
 
-    spdlog::error("subset_fwd_index only works in this branch");
-    std::exit(1);
+    tbb::global_control control(tbb::global_control::max_allowed_parallelism, threads + 1);
+    spdlog::info("Number of worker threads: {}", threads);
+
+    try {
+        auto mapping = mapping_from_files(
+            fmt::format("{}.documents", input_basename), gsl::make_span(shard_files)
+            );
+        partition_fwd_index(input_basename, output_basename, mapping);
+    } catch (std::exception const& err) {
+        spdlog::error("{}", err.what());
+        std::exit(1);
+    } catch (...) {
+        spdlog::error("Unknown error");
+        std::exit(1);
+    }
 
     return 0;
 }
