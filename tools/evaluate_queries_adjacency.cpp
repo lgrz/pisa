@@ -158,7 +158,7 @@ void evaluate_queries(
     std::ofstream edges_ofs(edges_filename, std::ios::binary);
     std::ofstream weights_ofs(weights_filename, std::ios::binary);
     std::vector<DocId> edges(neighbors, 0);
-    std::vector<_Float16> weights(neighbors, 0.0);
+    std::vector<float> weights(neighbors, 0.0);
 
     std::vector<std::vector<typename topk_queue::entry_type>> raw_results(queries.size());
     auto start_batch = std::chrono::steady_clock::now();
@@ -167,13 +167,12 @@ void evaluate_queries(
     });
     auto end_batch = std::chrono::steady_clock::now();
 
-    // write out 4-column runfile and graph
     assert(k == (neighbors + 1));
     for (size_t query_idx = 0; query_idx < raw_results.size(); ++query_idx) {
         auto results = raw_results[query_idx];
         auto qid = queries[query_idx].id();
         auto qid_val = qid.value_or(std::to_string(query_idx));
-        std::fill(edges.begin(), edges.end(), qid);
+        std::fill(edges.begin(), edges.end(), query_idx);
         std::fill(weights.begin(), weights.end(), 0.0);
         size_t idx = 0;
         for (auto&& [rank, result]: enumerate(results)) {
@@ -184,7 +183,7 @@ void evaluate_queries(
                 break;
             }
             edges[idx] = result.second;
-            weights[idx] = static_cast<_Float16>(result.first);
+            weights[idx] = result.first;
             ++idx;
             std::cout << fmt::format(
                 "{} {} {} {}\n",
