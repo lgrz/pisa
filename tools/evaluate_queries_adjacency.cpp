@@ -152,16 +152,13 @@ void evaluate_queries(
     auto docmap = Payload_Vector<>::from(*source);
 
     // output results as bytes for the corpus graph format.
-    DocId null_val = std::numeric_limits<DocId>::max();
     size_t const neighbors = 128;
     std::string const edges_filename = "edges.bin";
     std::string const weights_filename = "weights.bin";
     std::ofstream edges_ofs(edges_filename, std::ios::binary);
     std::ofstream weights_ofs(weights_filename, std::ios::binary);
-    std::vector<DocId> edges(neighbors, null_val);
-    // TODO: _Float16
-    // https://gcc.gnu.org/onlinedocs/gcc/Half-Precision.html
-    std::vector<Score> weights(neighbors, null_val);
+    std::vector<DocId> edges(neighbors, 0);
+    std::vector<_Float16> weights(neighbors, 0.0);
 
     std::vector<std::vector<typename topk_queue::entry_type>> raw_results(queries.size());
     auto start_batch = std::chrono::steady_clock::now();
@@ -170,44 +167,25 @@ void evaluate_queries(
     });
     auto end_batch = std::chrono::steady_clock::now();
 
-    /* for (size_t query_idx = 0; query_idx < raw_results.size(); ++query_idx) { */
-    /*     auto results = raw_results[query_idx]; */
-    /*     auto qid = queries[query_idx].id(); */
-    /*     for (auto&& [rank, result]: enumerate(results)) { */
-    /*         std::cout << fmt::format( */
-    /*             "{} {} {} {} {} {}\n", */
-    /*             qid.value_or(std::to_string(query_idx)), */
-    /*             iteration, */
-    /*             docmap[result.second], */
-    /*             rank + 1, */
-    /*             result.first, */
-    /*             run_id */
-    /*         ); */
-    /*     } */
-    /* } */
-    // for the `break` condition so we don't overflow edges, weights
+    // write out 4-column runfile and graph
     assert(k == (neighbors + 1));
     for (size_t query_idx = 0; query_idx < raw_results.size(); ++query_idx) {
         auto results = raw_results[query_idx];
         auto qid = queries[query_idx].id();
         auto qid_val = qid.value_or(std::to_string(query_idx));
-        uint64_t rank_idx = 0;
+        std::fill(edges.begin(), edges.end(), qid);
+        std::fill(weights.begin(), weights.end(), 0.0);
+        size_t idx = 0;
         for (auto&& [rank, result]: enumerate(results)) {
             if (qid_val == docmap[result.second]) {
-                // don't increment `rank_idx`, then we know the
-                // query-by-document was in the top-k results, and the `break`
-                // condition handles the vector overflow case (129 th result
-                // with index 128).
-                std::cerr << "skip qid " << qid_val << " result at rank " << docmap[result.second] << '\n';
                 continue;
             }
-            // for `k` neighbors, `k + 1` results are retrieved to account for
-            // the query-by-document very likely being in the top-k results.
-            if (rank_idx == k) {
+            if (idx == edges.size()) {
                 break;
             }
-            edges[rank] = result.second;
-            weights[rank] = result.first;
+            edges[idx] = result.second;
+            weights[idx] = static_cast<_Float16>(result.first);
+            ++idx;
             std::cout << fmt::format(
                 "{} {} {} {}\n",
                 qid.value_or(std::to_string(query_idx)),
@@ -218,9 +196,6 @@ void evaluate_queries(
         }
         edges_ofs.write(reinterpret_cast<char const*>(edges.data()), edges.size() * sizeof(edges[0]));
         weights_ofs.write(reinterpret_cast<char const*>(weights.data()), weights.size() * sizeof(weights[0]));
-        std::fill(edges.begin(), edges.end(), null_val);
-        std::fill(weights.begin(), weights.end(), null_val);
-        ++rank_idx;
     }
     auto end_print = std::chrono::steady_clock::now();
     double batch_ms =
