@@ -44,7 +44,7 @@ jobs:
       if: runner.os == 'macOS'
       run: |
           brew install autoconf automake libtool cmake
-          sudo xcode-select -switch /Applications/Xcode_${{ matrix.version }}.app
+          xcrun xcode-select --print-path
           echo "CC=$(xcrun -f clang)" >> $GITHUB_ENV
           echo "CXX=$(xcrun -f clang++)" >> $GITHUB_ENV
           echo "SDKROOT=$(xcodebuild -version -sdk macosx Path)" >> $GITHUB_ENV
