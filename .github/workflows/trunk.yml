@@ -35,15 +35,8 @@ jobs:
       run: docker run pisa ctest -VV -j 4
 
   mac_tests:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        name: [macos-xcode-13.2]
-        include:
-          - name: macos-xcode-13.2
-            os: macos-latest
-            compiler: "xcode"
-            version: "13.2"
+    runs-on: macos-latest
+
     steps:
     - uses: actions/checkout@v2
 
