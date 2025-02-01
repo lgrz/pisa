@@ -35,7 +35,7 @@ jobs:
       run: docker run pisa ctest -VV -j 4
 
   mac_tests:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
     - uses: actions/checkout@v2
