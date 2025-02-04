@@ -9,8 +9,6 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_compile_definitions(BOOST_NO_CXX98_FUNCTION_BASE=1)
-
 option(PISA_BUILD_TOOLS "Build command line tools." ON)
 option(PISA_ENABLE_TESTING "Enable testing of the library." ON)
 option(PISA_ENABLE_BENCHMARKING "Enable benchmarking of the library." ON)
@@ -98,6 +96,20 @@ find_package(Threads REQUIRED)
 
 if (PISA_SYSTEM_BOOST)
     find_package(Boost REQUIRED)
+else()
+    # non system boost dependency (header only libraries)
+    ExternalProject_Add(boost-external
+        URL https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz
+        URL_HASH SHA256=f55c340aa49763b1925ccf02b2e83f35fdcf634c9d5164a2acb87540173c741d
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+    add_library(boost_headers INTERFACE)
+    set(BOOST_INCLUDE_DIR ${CMAKE_BINARY_DIR}/boost-external-prefix/src/boost-external)
+    set_property(TARGET boost_headers APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${BOOST_INCLUDE_DIR})
+    add_dependencies(boost_headers boost-external)
 endif()
 
 if (PISA_SYSTEM_ONETBB)
@@ -124,7 +136,7 @@ target_include_directories(pisa PUBLIC
 target_link_libraries(pisa
     PUBLIC
         Threads::Threads
-        Boost::boost
+        boost_headers
         mio
         mio_base
         spdlog
