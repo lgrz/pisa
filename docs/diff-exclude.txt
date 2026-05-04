@@ -1,0 +1,10 @@
+*.css
+*.min.js
+*.png
+*.svg
+css/*
+highlight.js
+searcher.js
+searchindex.js
+FontAwesome/*
+fonts/*

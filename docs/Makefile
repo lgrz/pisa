@@ -4,4 +4,4 @@ all:
 clean:
 	mdbook clean .
 
-.PHONY: clean
+.PHONY: all clean

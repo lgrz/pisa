@@ -10,8 +10,9 @@
 Install mdBook and cmdrun plugin with:
 
 ```
-cargo install mdbook
-cargo install mdbook-cmdrun
+# note: when updating the mdbook versions below also update the versions in
+        `.github/workflows/commit.yml`
+cargo install mdbook@^0.4.52 mdbook-cmdrun@0.7.3
 ```
 
 Build PISA with `PISA_BUILD_TOOLS=ON` (the default):

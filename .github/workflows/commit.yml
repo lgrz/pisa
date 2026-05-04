@@ -17,7 +17,7 @@ jobs:
             os: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
 
@@ -61,11 +61,18 @@ jobs:
           TEST_DIR: ../pisa/test
       run: ../pisa/test/cli/run.sh
 
+    - name: Upload test-cli build files
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-cli-build
+        overwrite: true
+        path: ${{runner.workspace}}/build
+
   coverage:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
 
@@ -81,7 +88,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
 
     - name: Install clang-format
       shell: bash
@@ -89,7 +96,7 @@ jobs:
           sudo pip install clang-format==20.1.6
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.13
 
@@ -101,11 +108,53 @@ jobs:
             --clang-format-executable clang-format \
             -r src/**/*.cpp include/pisa/**/*.hpp tools/*.cpp tools/*.hpp test/*.cpp
 
+  docs:
+    runs-on: ubuntu-22.04
+    needs: test_cli
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Download test-cli build files
+      uses: actions/download-artifact@v8
+      with:
+        name: test-cli-build
+        path: ${{runner.workspace}}/build
+
+    - name: Make bin exec
+      shell: bash
+      run: chmod -R +x ${{runner.workspace}}/build/bin
+
+    - name: Install mdbook
+      shell: bash
+      run: cargo install mdbook@^0.4.52 mdbook-cmdrun@0.7.3
+
+    - name: Link build/bin for docs hardcoded cmdrun to pisa/build/bin
+      shell: bash
+      run: |
+        mkdir -p ${{runner.workspace}}/pisa/build
+        ln -fs ${{runner.workspace}}/build/bin ${{runner.workspace}}/pisa/build/bin
+
+    - name: Build docs
+      working-directory: ${{runner.workspace}}/pisa/docs
+      shell: bash
+      run: |
+        mkdir -p ${{runner.workspace}}/docs_output
+        mdbook build --dest-dir ${{runner.workspace}}/docs_output
+
+    - name: Diff
+      shell: bash
+      run: |
+        diff -qr --exclude-from=${{runner.workspace}}/pisa/docs/diff-exclude.txt \
+          ${{runner.workspace}}/docs_output \
+          ${{runner.workspace}}/pisa/docs/book
+
+
   headers:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
 
