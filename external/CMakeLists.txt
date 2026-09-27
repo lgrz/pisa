@@ -81,6 +81,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/fmt)
 target_compile_options(fmt INTERFACE -Wno-deprecated-declarations)
 
 # Add spdlog
+set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "disable bundled libfmt" FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/spdlog)
 
 # Add range-v3
