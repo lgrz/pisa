@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <array>
 #include <concepts>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <numeric>
@@ -91,12 +93,12 @@ void validate_padding(std::span<std::byte const> bytes) {
     if (padding != 0) {
         throw std::domain_error(
             fmt::format(
-                "bytes 3-7 must be all 0 but are {:#2x} {:#2x} {:#2x} {:#2x} {:#2x}",
-                bytes[3],
-                bytes[4],
-                bytes[5],
-                bytes[6],
-                bytes[7]
+                fmt::runtime("bytes 3-7 must be all 0 but are {:#4x} {:#4x} {:#4x} {:#4x} {:#4x}"),
+                std::to_integer<uint8_t>(bytes[2]),
+                std::to_integer<uint8_t>(bytes[4]),
+                std::to_integer<uint8_t>(bytes[5]),
+                std::to_integer<uint8_t>(bytes[6]),
+                std::to_integer<uint8_t>(bytes[7])
             )
         );
     }
@@ -207,16 +209,18 @@ auto LookupTable::from_bytes(std::span<std::byte const> bytes) -> LookupTable {
     if (verification_byte != lt::VERIFICATION_BYTE) {
         throw std::domain_error(
             fmt::format(
-                "lookup table verification byte invalid: must be {:#x} but {:#x} given",
-                lt::VERIFICATION_BYTE,
-                verification_byte
+                fmt::runtime("lookup table verification byte invalid: must be {:#4x} but {:#4x} given"),
+                std::to_integer<uint8_t>(lt::VERIFICATION_BYTE),
+                std::to_integer<uint8_t>(verification_byte)
             )
         );
     }
 
     auto version = static_cast<std::uint8_t>(leading_bytes[1]);
     if (version != 1) {
-        throw std::domain_error(fmt::format("only version 1 is valid but {} given", version));
+        throw std::domain_error(
+            fmt::format(fmt::runtime("only version 1 is valid but {} given"), version)
+        );
     }
 
     return LookupTable::v1(bytes);

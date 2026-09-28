@@ -2,6 +2,7 @@
 #include "catch2/catch.hpp"
 
 #include <algorithm>
+#include <new>
 
 #include <rapidcheck.h>
 

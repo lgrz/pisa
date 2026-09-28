@@ -5,6 +5,7 @@
 
 #include "codec/compact_elias_fano.hpp"
 #include <cstdlib>
+#include <new>
 #include <vector>
 
 struct sequence_initialization {
