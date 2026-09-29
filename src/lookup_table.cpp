@@ -93,7 +93,7 @@ void validate_padding(std::span<std::byte const> bytes) {
     if (padding != 0) {
         throw std::domain_error(
             fmt::format(
-                fmt::runtime("bytes 3-7 must be all 0 but are {:#4x} {:#4x} {:#4x} {:#4x} {:#4x}"),
+                "bytes 3-7 must be all 0 but are {:#2x} {:#2x} {:#2x} {:#2x} {:#2x}",
                 bytes[2],
                 bytes[4],
                 bytes[5],
@@ -209,7 +209,7 @@ auto LookupTable::from_bytes(std::span<std::byte const> bytes) -> LookupTable {
     if (verification_byte != lt::VERIFICATION_BYTE) {
         throw std::domain_error(
             fmt::format(
-                fmt::runtime("lookup table verification byte invalid: must be {:#4x} but {:#4x} given"),
+                "lookup table verification byte invalid: must be {:#x} but {:#x} given",
                 lt::VERIFICATION_BYTE,
                 verification_byte
             )
