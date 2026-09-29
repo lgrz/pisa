@@ -20,13 +20,13 @@
 #include <numeric>
 #include <optional>
 #include <span>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
 #include <fmt/format.h>
-#include <string>
+#include <fmt/std.h>
 
-#include "fmt/core.h"
 #include "pisa/lookup_table.hpp"
 #include "pisa/span.hpp"
 #include "pisa/stream.hpp"
